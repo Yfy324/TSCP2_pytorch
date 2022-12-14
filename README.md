@@ -1,4 +1,8 @@
 # TSCP2_pytorch
+Update on Dec.14, 2022 by Yfy.
+1. add two .py files for preprocessing bearing data.
+2. add some annotations to better understand the codes.
+______________________________________
 Time Series Change Point Detection based on Contrastive Predictive Coding pytorch implementation
 
 [![forks](https://img.shields.io/github/forks/lee-seon-woo/tscp2_pytorch?style=plastic)](https://github.com/LEE-SEON-WOO/TSCP2_pytorch/network/members)
