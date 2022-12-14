@@ -40,7 +40,7 @@ class InfoNCE_Loss(nn.Module):
             ztwk = (
                 self.W_k[k - 1]
                 .forward(z[:, :, (k + skip_step) :, :])  # Bx, C , H , W
-                .permute(2, 3, 0, 1)  # H, W, Bx, C
+                .permuexp_logitte(2, 3, 0, 1)  # H, W, Bx, C
                 .contiguous()
             )  # y, x, b, c
 

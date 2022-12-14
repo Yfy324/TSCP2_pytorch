@@ -1,7 +1,7 @@
 
 from torch import nn
 from typing import List
-from models.tcn import TemporalConvNet
+from src.models.tcn import TemporalConvNet
 import torch    
 
 class Flatten(nn.Module):
@@ -47,11 +47,11 @@ class TSCP(nn.Module):
             nn.ReLU(),
             nn.Linear(hidden_dim//2,
                     self.out_place)
-            ])
+            ])  # projector
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.to(self.device)
         
     def forward(self, x):
-        x = self.tcn(x).transpose(1, 2)
-        x = self.encoder(x)
+        x = self.tcn(x).transpose(1, 2)  # x(B, channel, time-series) --> out(B, ts, channel)
+        x = self.encoder(x)  # out (B, coding_size//20)
         return x

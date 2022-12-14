@@ -61,7 +61,7 @@ class Trainer(object):
         self.device = device if torch.cuda.is_available() else 'cpu'
         # Metrics
         
-        self.train_log = defaultdict(list,
+        self.train_log = defaultdict(list,  # 几乎同dict，但可避免KeyError异常，命名key+设定values
                         { k:[] for k in ('train_loss', 'train_neg', 'train_sim') })
         self.val_log = defaultdict(list,
                         { k:[] for k in ('val_loss', 'val_neg', 'val_sim') })
@@ -182,7 +182,7 @@ class Trainer(object):
                 # X2 = F.normalize(X2, dim=1)
                 loss, sim_mean, sim_neg = self.loss_fn(X1, X2)
                 
-            # Update batch metrics
+            # Update batch metrics  -- moving average
             log['sim']= (sim_mean.detach().cpu().numpy()+ i*log['sim']) / (i+1)
             log['neg']= (sim_neg.detach().cpu().numpy()+ i*log['neg']) / (i+1)
             log['loss']= (loss.detach().cpu().numpy().mean()+ i*log['loss']) / (i+1)

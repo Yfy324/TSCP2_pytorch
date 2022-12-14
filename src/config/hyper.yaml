@@ -1,14 +1,15 @@
 exp_param:
-  data_path: './data' # Prefix path to data directory
+#  data_path: '/home/yfy/Desktop/project/AD/contrastive/TSCP2/data/' # Prefix path to data directory
+  data_path: '/data/yfy/FD-data/RUL/'
   output_dir:  './output' #'Learning rate for optimizer'
-  dataset: 'USC' #prefix path to output directory
+  dataset: 'Bearing' #prefix path to output directory
   loss: 'nce' #'loss function'
   sim: 'cosine'  #'similarity metric'
   gpu: 'cuda' #'gpu device id'
 
 hyper_param: #interface of running experiments for TSCP2 baselines
   encode_feature: 20 #'Size of encoded features'
-  window_size: 100
+  window_size: 2560  #100
   beta: 1  #'parameter for FN loss function or threshold for FC loss function'
   epoch: 100 # max iteration for training
   lr: 1e-4 #learning rate

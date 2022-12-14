@@ -4,24 +4,23 @@ import scipy.io as sio
 import os
 from sklearn.model_selection import train_test_split
 
+
 def ts_samples(mbatch, win):
-    x = mbatch[:,1:win+1]
-    y = mbatch[:,-win:]
-    lbl = mbatch[:,0]
+    x = mbatch[:, 1:win + 1]
+    y = mbatch[:, -win:]
+    lbl = mbatch[:, 0]
     return x, y, lbl
 
 
 def load_usc_ds(path, window, mode='train'):
-
     X, lbl = extract_windows(path, window, mode)
-    
-    
+
     if mode == "all":
         return X, lbl
-    X_train, X_test, y_train, y_test = train_test_split(X, lbl, 
-                                                        train_size=0.8, 
-                                                        shuffle=True, 
-                                                        stratify=lbl, 
+    X_train, X_test, y_train, y_test = train_test_split(X, lbl,
+                                                        train_size=0.8,
+                                                        shuffle=True,
+                                                        stratify=lbl,
                                                         random_state=13130132)
     # train_size = int(floor(0.8 * X.shape[0]))
     if mode == "train":
@@ -47,16 +46,16 @@ def extract_windows(path, window_size, mode=None):
     dataset = sio.loadmat(os.path.join(path, "usc.mat"))
 
     ts = np.array(dataset['Y'])
-    ts = ts[:,0] #Time Series
-    
+    ts = ts[:, 0]  # Time Series
+
     cp = np.array(dataset['L'])
-    cp = cp[:,0] #Change Point Label
-    
+    cp = cp[:, 0]  # Change Point Label
+
     num_cp = 0
     for i in range(0, ts.shape[0] - window_size, 5):
         windows.append(np.array(ts[i:i + window_size]))
-        #print("TS",ts[i:i+window_size])
-        is_cp = np.where(cp[i:i + window_size] == 1)[0]
+        # print("TS",ts[i:i+window_size])
+        is_cp = np.where(cp[i:i + window_size] == 1)[0]  # 标记的是每个series中0-199 维度中含有1的 具体维度索引
         if is_cp.size == 0:
             is_cp = [0]
         else:
@@ -64,7 +63,7 @@ def extract_windows(path, window_size, mode=None):
         lbl.append(is_cp[0])
 
     print(f"number of samples : {len(windows)}"
-            f" number of samples with change point : {num_cp}")
+          f" number of samples with change point : {num_cp}")
     windows = np.array(windows)
 
     return windows, np.array(lbl)

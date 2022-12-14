@@ -31,13 +31,13 @@ class ContrastiveLoss(nn.Module):
         """
         
         batch_size = proj_1.shape[0]
-        z_i = F.normalize(proj_1, p=2, dim=1)
+        z_i = F.normalize(proj_1, p=2, dim=1)  # L_p范数
         z_j = F.normalize(proj_2, p=2, dim=1)
         
-        similarity_matrix = self.calc_similarity_batch(z_i, z_j)
+        similarity_matrix = self.calc_similarity_batch(z_i, z_j)  # 有一个zi zj 沿着batch维度concat操作
 
-        sim_ij = torch.diag(similarity_matrix, batch_size)
-        sim_ji = torch.diag(similarity_matrix, -batch_size)
+        sim_ij = torch.diag(similarity_matrix, batch_size)  # 右上对角线
+        sim_ji = torch.diag(similarity_matrix, -batch_size) # 左下对角线
 
         positives = torch.cat([sim_ij, sim_ji], dim=0)
 
@@ -45,10 +45,10 @@ class ContrastiveLoss(nn.Module):
 
         denominator = device_as(self.mask, similarity_matrix) * torch.exp(similarity_matrix / self.temperature)
 
-        all_losses = -torch.log(nominator / torch.sum(denominator, dim=1))
+        all_losses = -torch.log(nominator / torch.sum(denominator, dim=1))  # 没有用ce-loss，直接复现的公式
         loss = torch.sum(all_losses) / (2 * self.batch_size)
         
         mean_sim = similarity_matrix.mean()
         
-        mean_neg = torch.mul(similarity_matrix, device_as(self.mask, similarity_matrix)).mean()
+        mean_neg = torch.mul(similarity_matrix, device_as(self.mask, similarity_matrix)).mean()  # x 逐元素相乘，只mask了主对角线元素，得到的是pos+neg!
         return loss, mean_sim, mean_neg

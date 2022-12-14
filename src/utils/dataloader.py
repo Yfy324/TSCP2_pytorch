@@ -7,7 +7,9 @@ from .hasc_helper import load_hasc_ds
 from .usc_ds_helper import load_usc_ds
 from .yahoo_ds_helper import load_yahoo_ds
 from .air_ds_helper import load_air_ds
+from .bearing_ds_helper import load_bearing_ds
 import torch
+
 
 class Load_Dataset(Dataset):
     def __init__(self, path:str, 
@@ -37,37 +39,37 @@ class Load_Dataset(Dataset):
         self.win_sz = win
         self.batch_size = bs
         self.n_classes = classes 
-        load_dataset = {'HASC':load_hasc_ds, 
-                        "USC":load_usc_ds, 
-                        "YAHOO":load_yahoo_ds,
-                        'AIR':load_air_ds}
+        load_dataset = {'HASC': load_hasc_ds,
+                        "USC": load_usc_ds,
+                        "YAHOO": load_yahoo_ds,
+                        'AIR': load_air_ds,
+                        'Bearing': load_bearing_ds}
         
         try:
             self.X, self.y = load_dataset[ds_name](path, window=2*win, mode=mode)
             
         except:
             raise ValueError("Undefined Dataset.")
-        self.X = self.X.reshape(self.X.shape[:2]) if len(self.X.shape) > 2 else self.X
+        # self.X = self.X.reshape(self.X.shape[:2]) if len(self.X.shape) > 2 else self.X
         self.y = self.y.reshape(-1, 1)
-        self.y = np.where(self.y > 0, 1, 0)
+        # self.y = np.where(self.y > 0, 1, 0)  # label标记的是200个点中change points的相对位置，这里统一记为1
         
         print(f"Total X shape:{self.X.shape}, Total y Shape: {self.y.shape}")
         
-        X_train, X_test, y_train, y_test = train_test_split(self.X, self.y, 
-                                                        train_size=0.8, 
-                                                        shuffle=False, 
-                                                        random_state=13130132)
+        # X_train, X_test, y_train, y_test = train_test_split(self.X, self.y,
+        #                                                     train_size=0.8,   # change 0.8 to 1
+        #                                                     shuffle=True,
+        #                                                     random_state=13130132)
         
-        if mode == 'train':
-            self.X = X_train
-            self.y = y_train
-            print(f"Train X, y shape= {self.X.shape}, {self.y.shape}")
-        elif mode == 'test' or mode == 'val':
-            self.X = X_test
-            self.y = y_test
-            print(f"Test/Val X, y shape= {self.X.shape}, {self.y.shape}")
-        
-    
+        # if mode == 'train':
+        #     self.X = X_train
+        #     self.y = y_train
+        #     print(f"Train X, y shape= {self.X.shape}, {self.y.shape}")
+        # elif mode == 'test' or mode == 'val':
+        #     self.X = X_test
+        #     self.y = y_test
+        #     print(f"Test/Val X, y shape= {self.X.shape}, {self.y.shape}")
+
     def __str__(self):
         return f"<Dataset(N={len(self)}, batch_size={self.batch_size}, num_batches={self.get_num_batches()})>"
     
@@ -80,22 +82,22 @@ class Load_Dataset(Dataset):
         return X, y
     
     def ts_samples(self, bs_X, bs_y):
-        X1 = bs_X[:,:, 1:self.win_sz+1]
-        X2 = bs_X[:,:, -self.win_sz:]
+        X1 = bs_X[:,:, :self.win_sz]  # 1:101 -- 1~100
+        X2 = bs_X[:,:, -self.win_sz:]    # (200-100): -- 100~199
         Y = bs_y[:,0]
         return X1, X2, Y
     
     def generate_batches(self, 
-                        shuffle=False, 
-                        drop_last=True):
-        dataloader = DataLoader(dataset=self, 
+                         shuffle=False,
+                         drop_last=True):
+        dataloader = DataLoader(dataset=self,    # 理解为self -- 本身是d
                                 batch_size=self.batch_size, 
-                                collate_fn=self.collate_fn, 
+                                collate_fn=self.collate_fn,
                                 shuffle=shuffle, 
                                 drop_last=drop_last)
         for (X, y) in dataloader:
             # Previous Data of Split Window Size, 
-            # Future Data of of Split Window Size
+            # Future Data of Split Window Size
             X1, X2, y = self.ts_samples(X, y)
             yield (X1, X2), y
             
@@ -105,7 +107,8 @@ class Load_Dataset(Dataset):
     def collate_fn(self, batch):
         """Processing on a batch."""
         # Get inputs
-        X = torch.FloatTensor(np.array([entry[0] for entry in batch])).unsqueeze(1)
+        # X = torch.FloatTensor(np.array([entry[0] for entry in batch])).unsqueeze(1)
+        X = torch.FloatTensor(np.array([entry[0] for entry in batch])).permute(0, 2, 1)
         if self.n_classes == 1:
             y = torch.FloatTensor(np.array([entry[1] for entry in batch]).astype(np.int32))
             # y = y.squeeze(1)

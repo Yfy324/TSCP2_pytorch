@@ -6,6 +6,7 @@ import torch
 from torch import cosine_similarity
 import math
 
+
 def estimate_CPs(sim:np.array, gt:np.array, path,
                 metric='cosine', threshold=0.5):
     
@@ -13,7 +14,7 @@ def estimate_CPs(sim:np.array, gt:np.array, path,
     #     sim = cosine_similarity(sim, gt, dim=1)
 
     est_cp = np.zeros(sim.shape)
-    est_cp = np.where(sim<threshold, 1, 0)
+    est_cp = np.where(sim < threshold, 1, 0)
     
     gt = gt.astype(np.uint8)
     sim = sim.astype(np.uint8)
@@ -36,6 +37,8 @@ def estimate_CPs(sim:np.array, gt:np.array, path,
     ## continuous series
     i = 1
     pos, seq_tp, seq_fn, seq_fp = 0, 0, 0, 0
+
+
 
     while i < gt.shape[0]:
         if gt[i] == 1:

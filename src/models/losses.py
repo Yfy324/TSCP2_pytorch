@@ -266,7 +266,7 @@ def info_nce(history, future, temperature=0.1, reduction='mean'):
     
     # Cosine Similarity
     sim = F.cosine_similarity(torch.unsqueeze(history, dim=1), 
-                                torch.unsqueeze(future, dim=0), dim=2)
+                              torch.unsqueeze(future, dim=0), dim=2)
     all_sim = torch.exp(sim/temperature)
     
     # Negative Mask
@@ -275,20 +275,20 @@ def info_nce(history, future, temperature=0.1, reduction='mean'):
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
     tri_mask = torch.tensor(tri_mask).to(device)
     # N-1 mean except to positive
-    neg = torch.masked_select(sim, tri_mask).reshape(N, N - 1)
+    neg = torch.masked_select(sim, tri_mask).reshape(N, N - 1)  # 会根据 mask 对应位置的值 进行删选, 最后输出一个1维的tensor
     #Positive Similarity
-    pos_sim = torch.exp(torch.linalg.diagonal(sim)/temperature)
+    pos_sim = torch.exp(torch.diagonal(sim)/temperature)
     logits = torch.divide(pos_sim.sum(), all_sim.sum(axis=1))
     
     label = torch.ones(history.shape[0]).to(device)
     
     # categorical cross entropy
-    loss = F.binary_cross_entropy_with_logits(logits, label, reduction=reduction)
+    loss = F.binary_cross_entropy_with_logits(logits, label, reduction=reduction)  # 输入logitl
     # loss = torch.sum(logits)
     # divide by the size of batch
     # loss = loss / lbl.shape[0]
     # similarity of positive pairs (only for debug)
-    mean_sim = torch.mean(torch.linalg.diagonal(sim))
+    mean_sim = torch.mean(torch.diagonal(sim))
     mean_neg = torch.mean(neg)
     return loss, mean_sim, mean_neg
     
